@@ -6,7 +6,7 @@
 
 This contains everything you need to run your app locally.
 
-View your app in AI Studio: https://ai.studio/apps/81f62dd9-62bd-44da-8324-9fb00d4a6d54
+View your app in AI Studio: [https://ai.studio/apps/81f62dd9-62bd-44da-8324-9fb00d4a6d54](https://melodymix-ai-639585907244.asia-southeast1.run.app/)
 
 ## Run Locally
 
