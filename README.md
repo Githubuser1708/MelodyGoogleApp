@@ -6,15 +6,7 @@
 
 This contains everything you need to run your app locally.
 
-View your app in AI Studio: [https://ai.studio/apps/81f62dd9-62bd-44da-8324-9fb00d4a6d54](https://melodymix-ai-639585907244.asia-southeast1.run.app/)
-
-## Run Locally
-
-**Prerequisites:**  Node.js
+<h1> Try out the Meloday App in URL : [https://ai.studio/apps/81f62dd9-62bd-44da-8324-9fb00d4a6d54](https://melodymix-ai-639585907244.asia-southeast1.run.app/)
+</h1>
 
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
