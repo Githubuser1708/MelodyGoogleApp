@@ -6,7 +6,7 @@
 
 This contains everything you need to run your app locally.
 
-<h1> Try out the Meloday App in URL : [https://ai.studio/apps/81f62dd9-62bd-44da-8324-9fb00d4a6d54](https://melodymix-ai-639585907244.asia-southeast1.run.app/)
-</h1>
+Try out the Meloday App in URL : [https://ai.studio/apps/81f62dd9-62bd-44da-8324-9fb00d4a6d54](https://melodymix-ai-639585907244.asia-southeast1.run.app/)
+
 
 
