@@ -1,6 +1,6 @@
 import { Download, Music, Play, Pause, RefreshCw } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 interface AudioPlayerProps {
   url: string | null;
@@ -36,22 +36,21 @@ export default function AudioPlayer({ url, isLoading, lyrics, playTrigger }: Aud
     setIsPlaying(false);
   }, [url]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (playTrigger && playTrigger > 0 && audioRef.current && url) {
-      // Small delay to ensure browser handles the interaction context
-      const timer = setTimeout(() => {
-        const playPromise = audioRef.current?.play();
-        if (playPromise !== undefined) {
-          playPromise.then(() => {
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
             setIsPlaying(true);
-          }).catch(error => {
-            console.error("Auto-playback failed:", error);
+          })
+          .catch(error => {
+            console.error("Auto-playback failed in useLayoutEffect:", error);
+            setIsPlaying(false);
           });
-        }
-      }, 100);
-      return () => clearTimeout(timer);
+      }
     }
-  }, [playTrigger, url]);
+  }, [playTrigger]);
 
   if (!url && !isLoading) {
     return (

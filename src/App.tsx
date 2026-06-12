@@ -6,6 +6,7 @@ import VoiceUpload from './components/VoiceUpload';
 import AudioPlayer from './components/AudioPlayer';
 import Archive, { ArchiveItem } from './components/Archive';
 import { generateMusicStream, decodeAudioResponse, GenerationParams } from './lib/musicService';
+import { saveAudio, getAudio, deleteAudio } from './lib/audioDb';
 
 export default function App() {
   const [voiceSample, setVoiceSample] = useState<{ data: string; mimeType: string } | null>(null);
@@ -21,6 +22,31 @@ export default function App() {
     const saved = localStorage.getItem('melodymix_archive');
     return saved ? JSON.parse(saved) : [];
   });
+
+  // Page mount: reconstruct active Blob URLs from IndexedDB to ensure play/download work across sessions
+  useEffect(() => {
+    const reconstructArchiveUrls = async () => {
+      const saved = localStorage.getItem('melodymix_archive');
+      if (!saved) return;
+      try {
+        const parsed: ArchiveItem[] = JSON.parse(saved);
+        const updatedList = await Promise.all(
+          parsed.map(async (item) => {
+            const stored = await getAudio(item.id);
+            if (stored && stored.base64) {
+              const url = decodeAudioResponse(stored.base64, stored.mimeType);
+              return { ...item, url };
+            }
+            return item;
+          })
+        );
+        setArchive(updatedList);
+      } catch (err) {
+        console.error('Failed to reconstruct archive active links:', err);
+      }
+    };
+    reconstructArchiveUrls();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('melodymix_archive', JSON.stringify(archive));
@@ -95,9 +121,16 @@ export default function App() {
         setLyrics(generatedLyrics);
         setPlayTrigger(prev => prev + 1);
 
-        // Save to archive
+        const newId = Date.now().toString();
+
+        // Save to IndexedDB first
+        await saveAudio(newId, audioBase64, mimeType).catch(err => {
+          console.error("Failed to save audio to IndexedDB:", err);
+        });
+
+        // Save to archive list
         const newItem: ArchiveItem = {
-          id: Date.now().toString(),
+          id: newId,
           url: url,
           prompt: params.prompt,
           genre: params.genre,
@@ -125,12 +158,28 @@ export default function App() {
     }
   };
 
-  const deleteArchiveItem = (id: string) => {
+  const deleteArchiveItem = async (id: string) => {
     setArchive(prev => prev.filter(item => item.id !== id));
+    await deleteAudio(id).catch(err => {
+      console.error("Failed to delete audio from IndexedDB:", err);
+    });
   };
 
-  const playArchiveItem = (item: ArchiveItem) => {
-    setAudioUrl(item.url);
+  const playArchiveItem = async (item: ArchiveItem) => {
+    try {
+      const stored = await getAudio(item.id);
+      if (stored && stored.base64) {
+        const url = decodeAudioResponse(stored.base64, stored.mimeType);
+        // Sync back to the archive list in state so downstreams match
+        setArchive(prev => prev.map(a => a.id === item.id ? { ...a, url } : a));
+        setAudioUrl(url);
+      } else {
+        setAudioUrl(item.url);
+      }
+    } catch (err) {
+      console.error("Failed to retrieve fresh audio from IndexedDB:", err);
+      setAudioUrl(item.url);
+    }
     setPlayTrigger(prev => prev + 1);
     // Smoothly scroll to top to player
     window.scrollTo({ top: 0, behavior: 'smooth' });
